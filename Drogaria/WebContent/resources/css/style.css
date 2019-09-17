@@ -1,0 +1,16 @@
+@charset "ISO-8859-1";
+
+/*CSS que resolve o problema da flutuação do menuItem*/
+.ui-layout-north {
+	z-index: 20 !important;
+	overflow: visible !important;;
+}
+
+.ui-layout-north .ui-layout-unit-content {
+	overflow: visible !important;
+}
+
+/*CSS para resolver o tamanho das fontes*/
+.ui-widget,.uiwidget .ui-widget {
+	font-size:14px !important;
+}

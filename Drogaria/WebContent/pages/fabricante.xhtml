@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 	xmlns="http://www.w3.org/1999/xhtml"
+					xmlns:h="http://xmlns.jcp.org/jsf/html"
+					xmlns:f="http://xmlns.jcp.org/jsf/core"
+					xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+					xmlns:p="http://primefaces.org/ui"
+					template="/templates/modeloSistema.xhtml">
+
+	<ui:define name="menu">
+		<ui:include src="/include/menu.xhtml"/>
+	</ui:define>
+	
+	<ui:define name="conteudo">	
+		<h:form id="form">
+			<p:dataTable id="dataT" widgetVar="dataW" value="#{fabricanteBean.list}" var="fab" paginator="true" rows="8" 
+			emptyMessage="Não há registros cadastrados!"
+			filteredValue="#{fabricanteBean.filteredFactory}">
+			
+				<f:facet name="header">
+					<h:outputText value="Fabricantes"/>
+				</f:facet>
+				
+				<p:column headerText="Código" sortBy="#{fab.codigo}" filterBy="#{fab.codigo}">
+					<h:outputText value="#{fab.codigo}"/>
+				</p:column>
+				
+				<p:column headerText="Descrição" sortBy="#{fab.descricao}" filterBy="#{fab.descricao}">
+					<h:outputText value="#{fab.descricao}"/>
+				</p:column>
+				
+				<p:column headerText="Ações">
+					<p:commandButton icon="ui-icon-pencil" oncomplete="PF('dlgEdit').show();" update=":formEdit:pnlEdit">
+						<f:setPropertyActionListener value="#{fab}" target="#{fabricanteBean.fabricante}"/>
+					</p:commandButton>
+					<p:commandButton icon="ui-icon-trash" oncomplete="PF('dlgDelete').show();" update=":formDelete:pnlDelete">
+						<f:setPropertyActionListener value="#{fab}" target="#{fabricanteBean.fabricante}"/>
+					</p:commandButton>
+				</p:column>
+				
+				<f:facet name="footer">
+					<p:commandButton oncomplete="PF('dlg1').show();" icon="ui-icon-circle-plus" update=":formDlg:pnlDlg"/>
+				</f:facet>
+			</p:dataTable>
+		</h:form>
+		
+	 	<p:dialog widgetVar="dlg1" draggable="false" closable="true" resizable="false" header="Add Factory" modal="true" appendTo="@(body)"
+	 				showEffect="explode" height="100" position="top">
+	 				
+			<h:form id="formDlg">
+				<p:panelGrid id="pnlDlg" columns="2">
+					<p:outputLabel for="input" value="Description: "/>
+					<p:inputText id="input" value="#{fabricanteBean.fabricante.descricao}" size="30" maxlength="50" required="true" requiredMessage="Description is required!"/>
+				</p:panelGrid>
+				
+				<p:panelGrid columns="2">
+					<p:commandButton value="Save" actionListener="#{fabricanteBean.save}" 
+					oncomplete="verify(xhr, status, args, 'dlg1', 'dataW');" 
+					update=":msgGlobal :form:dataT"/>
+					<p:commandButton value="Cancel"  onclick="PF('dlg1').hide();" process="@this">
+						<p:resetInput target="pnlDlg"/>
+					</p:commandButton>
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+		
+		<!-- Dialog do delete -->
+		<p:dialog widgetVar="dlgDelete" closable="true" resizable="false" draggable="false" modal="true" appendTo="@(body)" hideEffect="bounce" showEffect="explode" 
+				header="Delete" position="top">
+			<h:form id="formDelete">
+				<p:panelGrid id="pnlDelete" columns="2">
+					<h:outputLabel value="Code: "/>
+					<p:outputLabel value="#{fabricanteBean.fabricante.codigo}"/>
+					
+					<h:outputLabel value="Description: "/>
+					<p:outputLabel value="#{fabricanteBean.fabricante.descricao}"/>
+				</p:panelGrid>
+				
+				<p:panelGrid columns="2">				
+					<p:commandButton value="Delete" oncomplete="PF('dlgDelete').hide(); dataW.clearFilters();" actionListener="#{fabricanteBean.delete}" update=":form:dataT :msgGlobal"/>
+					<p:commandButton value="Cancel" actionListener="#{fabricanteBean.clearInputs}" oncomplete="PF('dlgDelete').hide();"/>
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+		
+		<!-- Dialog do Edit -->
+		<p:dialog widgetVar="dlgEdit" closable="true" draggable="false" resizable="false" modal="true" appendTo="@(body)" showEffect="explode" 
+				header="Edit" position="top">
+			<h:form id="formEdit">
+				<p:panelGrid id="pnlEdit" columns="2">
+					<h:outputLabel value="Code: "/>
+					<h:outputText value="#{fabricanteBean.fabricante.codigo}"/>
+					<p:outputLabel for="edit" value="Description: "/>
+					<p:inputText id="edit" value="#{fabricanteBean.fabricante.descricao}" required="true" requiredMessage="Description is required!"/>
+				</p:panelGrid>
+				
+				<p:panelGrid columns="2">				
+					<p:commandButton value="Save" actionListener="#{fabricanteBean.edit}" oncomplete="verify(xhr, status, args, 'dlgEdit', 'dataW');" update=":form:dataT :msgGlobal"/>
+					<p:commandButton value="Cancel" actionListener="#{fabricanteBean.clearInputs}" oncomplete="PF('dlgEdit').hide();" 
+						process="@this">
+						<p:resetInput target="pnlEdit" />	
+					</p:commandButton>
+				</p:panelGrid>
+			</h:form>
+		</p:dialog>
+		
+		
+	</ui:define>
+</ui:composition>

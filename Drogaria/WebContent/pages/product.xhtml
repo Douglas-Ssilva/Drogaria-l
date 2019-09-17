@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      template="/templates/modeloSistema.xhtml">
+      
+<ui:define name="menu">
+	<ui:include src="/include/menu.xhtml"></ui:include>
+</ui:define>
+
+<ui:define name="conteudo">
+
+	<f:metadata>
+		<f:viewAction action="#{productBean.init}"></f:viewAction>
+	</f:metadata>
+	
+	<h:form id="form" onkeypress="if (event.keyCode == 13) {return false;}">
+		<p:dataTable id="dataT" widgetVar="dataW" value="#{productBean.list}" var="product" filteredValue="#{productBean.listFilter}"
+		emptyMessage="Não há produtos cadastrados" paginator="true" rows="8">
+					
+			<f:facet name="header">Products</f:facet>		
+			
+			<p:column headerText="Código: " filterBy="#{product.codigo}" sortBy="#{product.codigo}">
+				<h:outputText value="#{product.codigo}"/>
+			</p:column>
+			
+			<p:column headerText="Descrição: " filterBy="#{product.descricao}" sortBy="#{product.descricao}">
+				<h:outputText value="#{product.descricao}"/>
+			</p:column>
+			
+			<p:column headerText="Fabricante: " filterBy="#{product.fabricante.descricao}" sortBy="#{product.fabricante.descricao}">
+				<h:outputText value="#{product.fabricante.descricao}"/>
+			</p:column>
+			
+			<p:column headerText="Quantidade: " sortBy="#{product.quantidade}">
+				<h:outputText value="#{product.quantidade}"/>
+			</p:column>
+			
+			<p:column headerText="Preço: " sortBy="#{product.preco}">
+				<h:outputText value="#{product.preco}">
+					<f:convertNumber pattern="0.00"/><!-- 2 casas depois da vírgula -->
+				</h:outputText>
+			</p:column>
+			
+			<p:column headerText="Options">
+				<p:commandButton oncomplete="PF('dlgEdit').show();" icon="ui-icon-pencil" update=":formEdit:pnlEdit">
+					<f:setPropertyActionListener value="#{product}" target="#{productBean.produto}"/>
+				</p:commandButton>
+				
+				<p:commandButton oncomplete="PF('dlgDelete').show();" icon="ui-icon-trash" update=":formDelete:pnlDelete">
+					<f:setPropertyActionListener value="#{product}" target="#{productBean.produto}"/>
+				</p:commandButton>
+			</p:column>
+			
+			<f:facet name="footer">
+				<p:commandButton oncomplete="PF('dlgNew').show();" icon="ui-icon-circle-plus" update=":formNew:pnlNew"/>
+			</f:facet>
+			
+		</p:dataTable>
+	</h:form>
+	
+	<p:dialog widgetVar="dlgNew" resizable="false" draggable="false" closable="true" modal="true" appendTo="@(body)" header="Add Product" 
+			  showEffect="explode" position="top">
+			<h:form id="formNew">
+				<p:panelGrid id="pnlNew" columns="2"> 
+					<p:outputLabel for="input" value="Description: "/>
+					<p:inputText id="input" value="#{productBean.produto.descricao}" required="true" requiredMessage="Description is required!"/>
+					<p:outputLabel for="amountNew" value="Amount: "/>
+					<p:inputText id="amountNew" value="#{productBean.produto.quantidade}" required="true" requiredMessage="Field amount is required!" 
+							converterMessage="Type the value all!"
+							validatorMessage="Allowed values between 1 and 1000!">
+							<f:validateLongRange minimum="1" maximum="1000"/>		
+					</p:inputText>
+					<p:outputLabel for="priceNew" value="Price: "/>
+					<p:inputText id="priceNew" value="#{productBean.produto.preco}" required="true" requiredMessage="Field price is required!" 
+							converterMessage="The value type not is number!"
+							validatorMessage="Allowed values between 0,01 and 9,999.99">
+						<f:convertNumber pattern="0.00"/>
+						<f:validateDoubleRange minimum="0.01" maximum="9999.99"/>
+					</p:inputText>
+					<p:outputLabel for="fabNew" value="Manufacturer: "/>
+					<p:selectOneMenu id="fabNew" value="#{productBean.produto.fabricante.codigo}" filter="true" required="true" requiredMessage="Field manufacturer is required!"><!-- Aparece lupa para pesquisar fabricantes -->
+						<f:selectItem itemLabel="[Selecione]"/>
+						<f:selectItems value="#{fabricanteBean.list}" var="fab" itemLabel="#{fab.descricao}" 
+						itemValue="#{fab.codigo}"/>
+					</p:selectOneMenu>
+				</p:panelGrid>
+					
+				<p:panelGrid columns="2">
+					<!-- Chamando a função JS que criei -->
+						<p:commandButton value="Save" actionListener="#{productBean.save}" 
+						oncomplete="verify(xhr, status, args, 'dlgNew', 'dataW');"
+						update=":form:dataT :msgGlobal" />
+						
+					<!-- Reset tudo que tenha nesse painel -->
+						<p:commandButton value="Cancel" onclick="PF('dlgNew').hide();" process="@this">
+							<p:resetInput target="pnlNew" />
+						</p:commandButton>
+				</p:panelGrid>
+			</h:form>
+	</p:dialog>
+	
+	<p:dialog widgetVar="dlgEdit" resizable="false" draggable="false" closable="true" modal="true" appendTo="@(body)" header="Edit" 
+				showEffect="explode" position="top" hideEffect="shake">
+			<h:form id="formEdit">
+				<p:panelGrid id="pnlEdit" columns="2">
+					<h:outputLabel value="Código: "/>
+					<h:outputText value="#{productBean.produto.codigo}"/>
+					<p:outputLabel for="inputEdit" value="Description"/>
+					<p:inputText id="inputEdit" value="#{productBean.produto.descricao}" required="true" requiredMessage="Description is required!"/>
+					<p:outputLabel for="amount" value="Amount: "/>
+					<p:inputText id="amount" value="#{productBean.produto.quantidade}" required="true" requiredMessage="Field amount is required!"
+								converterMessage="Type the value all!"
+								validatorMessage="Allowed values between 1 and 1000!">
+								<f:validateLongRange minimum="1" maximum="1000"/>			
+					</p:inputText>
+					<p:outputLabel for="price" value="Price: "/>
+					<p:inputText id="price" value="#{productBean.produto.preco}" required="true" requiredMessage="Field price is required!" 
+							converterMessage="The value typed not is number!"
+							validatorMessage="Allowed values between 0,01 and 9,999.99">
+						<f:convertNumber pattern="0.00"/>
+						<f:validateDoubleRange minimum="0.01" maximum="9999.99"/>
+					</p:inputText>				
+					<p:outputLabel for="fab" value="Manufacturer: "/>
+					<p:selectOneMenu id="fab" value="#{productBean.produto.fabricante.codigo}" filter="true" required="true" requiredMessage="Manufacturer is required!">
+						<f:selectItem itemValue="" itemLabel="[Selecione]"/>
+						<f:selectItems value="#{fabricanteBean.list}" var="fab" itemLabel="#{fab.descricao}" itemValue="#{fab.codigo}"/>
+					</p:selectOneMenu>
+				</p:panelGrid>
+				
+				<p:panelGrid columns="2"> 
+					<p:commandButton value="Save" actionListener="#{productBean.edit}" 
+						oncomplete="verify(xhr, status, args, 'dlgEdit', 'dataW');" 
+						update=":form:dataT :msgGlobal"/>
+					<p:commandButton value="Cancel" actionListener="#{productBean.clearInputsCancel}" oncomplete="PF('dlgEdit').hide();" 
+					process="@this">
+						<p:resetInput target="pnlEdit"/>
+					</p:commandButton>					
+				</p:panelGrid>
+			</h:form>
+	</p:dialog>
+	
+	<p:dialog widgetVar="dlgDelete" resizable="false" draggable="false" closable="true" modal="true" appendTo="@(body)" header="Delete"
+				showEffect="explode" hideEffect="bounce" position="top">
+			
+			<h:form id="formDelete"> 
+				<p:panelGrid id="pnlDelete" columns="2">
+					<h:outputText value="Código: "/>
+					<h:outputText value="#{productBean.produto.codigo}"/>
+					<h:outputText value="Descrição: "/>
+					<h:outputText value="#{productBean.produto.descricao}"/>
+					<h:outputText value="Quantidade: "/>
+					<h:outputText value="#{productBean.produto.quantidade}"/>
+					<h:outputText value="Preço: "/>
+					<h:outputText value="#{productBean.produto.preco}">
+						<f:convertNumber pattern="0.00"/>
+					</h:outputText>
+					<h:outputText value="Fabricante:"/>
+					<h:outputText value="#{productBean.produto.fabricante.descricao}"/>
+				</p:panelGrid>
+				
+				<p:panelGrid columns="2">
+					<p:commandButton value="Delete" actionListener="#{productBean.delete}" update=":form:dataT :msgGlobal"
+					 oncomplete="PF('dlgDelete').hide(); dataW.clearFilters();"/>
+					<p:commandButton value="Cancel" actionListener="#{productBean.clearInputsCancel}" oncomplete="PF('dlgDelete').hide();"/>
+				</p:panelGrid>
+			</h:form>
+				
+	</p:dialog>
+	
+	
+</ui:define>
+</ui:composition>
